@@ -18,6 +18,11 @@ config.local.js
 *-config.local.js
 ors-config.local.js
 
+# Templates et exemples (gardés en local uniquement)
+firebase-config.template.js
+config.example.js
+env.example
+
 # ========================================
 # NETLIFY & DÉPLOIEMENT
 # ========================================
