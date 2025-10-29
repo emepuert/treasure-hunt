@@ -94,6 +94,29 @@ simulatePosition(49.0928, 6.1907);
 - **Notifications en temps réel**
 - **Système de reset et gestion des progressions**
 
+## 📜 Licence
+
+[![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+
+Ce projet est sous licence **Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International** ([CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)).
+
+### Ce que cela signifie :
+
+✅ **Tu PEUX** :
+- Utiliser ce code pour des projets personnels ou éducatifs
+- Modifier et adapter le code
+- Partager le code avec d'autres
+
+❌ **Tu NE PEUX PAS** :
+- Vendre ce code ou l'utiliser commercialement
+- Retirer les mentions de l'auteur original
+
+📋 **Si tu modifies** :
+- Tu dois partager tes modifications sous la même licence CC BY-NC-SA 4.0
+- Tu dois créditer l'auteur original
+
+Pour plus d'informations, consulte le [texte complet de la licence](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode).
+
 ---
 
 🚀 **Prêt pour votre prochain événement de team building !**
