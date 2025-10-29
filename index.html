@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jeu de Piste - Version Test</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Modal de connexion utilisateur -->
+        <div id="user-login-modal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <h2>🏆 Connexion Équipe</h2>
+                <p>Entrez les identifiants de votre équipe :</p>
+                <div id="login-container">
+                    <input type="text" id="user-id" placeholder="Nom de votre équipe" required>
+                    <input type="password" id="user-password" placeholder="Mot de passe équipe" required>
+                    <button id="login-btn" disabled>Se connecter</button>
+                </div>
+                <div id="login-error" class="error-message" style="display: none;"></div>
+                <div id="login-loading" style="display: none;">
+                    <p>🔄 Connexion en cours...</p>
+                </div>
+                <p style="font-size: 0.9rem; color: #666; margin-top: 1rem;">
+                    💡 Vos identifiants vous ont été fournis par l'organisateur
+                </p>
+                <div class="admin-access">
+                    <a href="admin.html" class="admin-link-modal">⚙️ Accès Administrateur</a>
+                </div>
+            </div>
+        </div>
+
+        <header>
+            <div class="header-content">
+                <h1>🎯 Jeu de Piste - Test Netlify ✅</h1>
+                <a href="admin.html" class="admin-link" title="Accès Administration">
+                    ⚙️
+                </a>
+            </div>
+            <div id="team-info" style="display: none;">
+                <span id="current-team"></span>
+                <button id="debug-btn" onclick="showDebugPanel()" style="
+                    background: #3498db; color: white; border: none; 
+                    padding: 0.3rem 0.8rem; border-radius: 4px; 
+                    font-size: 0.8rem; margin-left: 1rem; cursor: pointer;
+                " title="Ouvrir le panneau de debug">🔧 Debug</button>
+                <button id="disconnect-btn" style="
+                    background: #e74c3c; color: white; border: none; 
+                    padding: 0.3rem 0.8rem; border-radius: 4px; 
+                    font-size: 0.8rem; margin-left: 0.5rem; cursor: pointer;
+                " title="Déconnecter l'équipe">🚪 Déconnexion</button>
+            </div>
+            <div id="status">Localisation en cours...</div>
+            
+            <!-- Bouton de debug (caché par défaut) -->
+            <div id="debug-panel" style="display: none; position: fixed; top: 10px; right: 10px; z-index: 10000;">
+                <button onclick="window.showMetrics()" style="background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 5px; font-size: 12px;">
+                    🔧 Debug
+                </button>
+                <button onclick="window.healthCheck()" style="background: #27ae60; color: white; border: none; padding: 5px 10px; border-radius: 5px; font-size: 12px; margin-left: 5px;">
+                    🏥 Health
+                </button>
+            </div>
+        </header>
+        
+        <main>
+            <div id="map"></div>
+            
+            <!-- Bouton flottant mobile -->
+            <button id="mobile-menu-btn" class="mobile-menu-btn" aria-label="Ouvrir le menu">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="24" height="24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 5.25h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5" />
+                </svg>
+            </button>
+            
+            <!-- Menu mobile slide-in -->
+            <div id="mobile-menu" class="mobile-menu">
+                <div class="mobile-menu-header">
+                    <h2>📊 Menu</h2>
+                    <button id="mobile-menu-close" class="mobile-menu-close" aria-label="Fermer le menu">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="24" height="24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="mobile-menu-content">
+                    <!-- Statut connexion -->
+                    <div id="mobile-team-info" class="mobile-section">
+                        <div id="mobile-status">Localisation en cours...</div>
+                        <div id="mobile-team-name"></div>
+                        
+                        <!-- Boutons Debug & Admin -->
+                        <div class="mobile-actions" style="display: none;">
+                            <button id="mobile-debug-panel-btn" class="mobile-action-btn">
+                                🛠️ Menu Debug
+                            </button>
+                            <button id="mobile-metrics-btn" class="mobile-action-btn">
+                                📊 Métriques
+                            </button>
+                            <button id="mobile-health-btn" class="mobile-action-btn">
+                                🏥 Health Check
+                            </button>
+                            <a href="admin.html" class="mobile-action-btn mobile-admin-link">
+                                ⚙️ Admin
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Progression -->
+                    <div id="mobile-progress" class="mobile-section">
+                        <h3>🎯 Progression</h3>
+                        <div class="mobile-progress-bar">
+                            <div id="mobile-progress-fill" class="mobile-progress-fill"></div>
+                        </div>
+                        <p id="mobile-progress-text">0 / 5 indices trouvés</p>
+                    </div>
+                    
+                    <!-- Parcours -->
+                    <div id="mobile-route" class="mobile-section">
+                        <h3>📋 Votre parcours</h3>
+                        <div class="mobile-route-help">
+                            <p>📍 = Demander l'aide de localisation</p>
+                            <p>🆘 = Demander l'aide pour l'épreuve</p>
+                            <p>📸🎤📝🧩 = Reprendre l'épreuve</p>
+                        </div>
+                        <div id="mobile-route-list"></div>
+                    </div>
+                    
+                    <!-- Prochain objectif -->
+                    <div id="mobile-hint" class="mobile-section">
+                        <h3>🔍 Prochain objectif</h3>
+                        <p id="mobile-hint-text">Trouvez votre position pour commencer l'aventure !</p>
+                        <button id="mobile-gps-route-btn" style="display: none;">🧭 Calculer l'itinéraire GPS</button>
+                    </div>
+                    
+                    <!-- Paramètres -->
+                    <div class="mobile-section mobile-settings">
+                        <h3>⚙️ Paramètres</h3>
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <span class="setting-label">🔋 Garder l'écran allumé</span>
+                                <span class="setting-description">Empêche le verrouillage automatique pendant le jeu</span>
+                                <span id="wake-lock-status" class="setting-status"></span>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="wake-lock-toggle">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Bouton déconnexion -->
+                    <div class="mobile-section">
+                        <button id="mobile-disconnect-btn" class="mobile-disconnect-btn">
+                            🚪 Déconnexion
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="info-panel">
+                
+                <div id="progress">
+                    <h3>🎯 Progression</h3>
+                    <div id="progress-bar">
+                        <div id="progress-fill"></div>
+                    </div>
+                    <p id="progress-text">0 / 5 indices trouvés</p>
+                </div>
+
+                <div id="route-progress">
+                    <h3>📋 Votre parcours</h3>
+                    <div id="player-route-list">
+                        <p>Chargement du parcours...</p>
+                    </div>
+                </div>
+                
+                <div id="next-hint">
+                    <h3>🔍 Prochain objectif</h3>
+                    <p id="hint-text">Trouvez votre position pour commencer l'aventure !</p>
+                    <button id="gps-route-btn" style="display: none;">🧭 Calculer l'itinéraire GPS</button>
+                </div>
+                
+                <!-- Section d'aide supprimée - maintenant intégrée dans chaque élément du parcours -->
+            </div>
+        </main>
+        
+        <!-- Modal pour les indices -->
+        <div id="clue-modal" class="modal">
+            <div class="modal-content">
+                <button class="close" aria-label="Fermer">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                    </svg>
+                </button>
+                <h2 id="clue-title">Indice découvert !</h2>
+                <div id="clue-content">
+                    <p id="clue-text"></p>
+                    <div id="clue-image"></div>
+                </div>
+                <button id="clue-close-btn">Continuer l'aventure</button>
+            </div>
+        </div>
+        
+        <!-- Modal pour les énigmes -->
+        <div id="riddle-modal" class="modal">
+            <div class="modal-content">
+                <button class="close" aria-label="Fermer">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                    </svg>
+                </button>
+                <h2>🧩 Énigme à Résoudre</h2>
+                <div id="riddle-content">
+                    <p id="riddle-question"></p>
+                    <div id="riddle-input-container">
+                        <input type="text" id="riddle-answer" placeholder="Votre réponse...">
+                        <button id="riddle-submit">Valider</button>
+                    </div>
+                    <p id="riddle-hint" style="display: none;"></p>
+                    <div id="riddle-feedback"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Modal de félicitations -->
+        <div id="success-modal" class="modal">
+            <div class="modal-content">
+                <h2>🎉 Félicitations !</h2>
+                <p id="success-message">Vous avez terminé le jeu de piste !</p>
+                <p id="success-team-info">Bravo pour cette belle aventure !</p>
+                <p><em>Vous pouvez continuer à explorer tous les points débloqués !</em></p>
+                <button id="close-success-btn">Continuer l'exploration</button>
+            </div>
+        </div>
+        
+        <!-- Modal pour le QCM -->
+        <div id="qcm-modal" class="modal">
+            <div class="modal-content">
+                <button class="close" aria-label="Fermer">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                    </svg>
+                </button>
+                <h2>📋 Quiz Culturel</h2>
+                <div id="qcm-content">
+                    <div id="qcm-question-container">
+                        <p id="qcm-question"></p>
+                    </div>
+                    
+                    <div id="qcm-answers-container">
+                        <!-- Les réponses seront ajoutées dynamiquement -->
+                    </div>
+                    
+                    <div id="qcm-controls">
+                        <button id="qcm-submit-btn" class="qcm-btn primary">✅ Valider ma réponse</button>
+                    </div>
+                    
+                    <div id="qcm-feedback" class="qcm-feedback"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Modal pour les instructions -->
+        <div id="instruction-modal" class="modal">
+            <div class="modal-content">
+                <button class="close" aria-label="Fermer">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                    </svg>
+                </button>
+                <h2>📄 Instructions</h2>
+                <div id="instruction-content">
+                    <div id="instruction-text-container">
+                        <p id="instruction-text"></p>
+                    </div>
+                    
+                    <div id="instruction-controls">
+                        <button id="instruction-understood-btn" class="instruction-btn primary">✅ J'ai compris</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Modal pour l'épreuve audio -->
+        <div id="audio-modal" class="modal">
+            <div class="modal-content">
+                <button class="close" aria-label="Fermer">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                    </svg>
+                </button>
+                <h2>🎤 Épreuve Audio</h2>
+                <div id="audio-content">
+                    <p id="audio-instructions"></p>
+                    
+                    <div id="audio-challenge-section">
+                        <div id="audio-status" class="audio-status">
+                            <p id="audio-status-text">Appuyez sur le bouton pour commencer</p>
+                        </div>
+                        
+                        <div id="audio-progress-container" style="display: none;">
+                            <div class="audio-progress-bar">
+                                <div id="audio-progress-fill" class="audio-progress-fill"></div>
+                            </div>
+                            <div class="audio-info">
+                                <span id="audio-timer">0s</span>
+                                <span id="audio-level">Volume: 0%</span>
+                            </div>
+                        </div>
+                        
+                        <div id="audio-controls">
+                            <button id="start-audio-btn" class="audio-btn primary">🎤 Commencer l'épreuve</button>
+                            <button id="stop-audio-btn" class="audio-btn" style="display: none;">⏹️ Arrêter</button>
+                        </div>
+                        
+                        <div id="audio-feedback" class="audio-feedback"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Modal pour les photos -->
+        <div id="photo-modal" class="modal">
+            <div class="modal-content">
+                <button class="close" aria-label="Fermer">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                    </svg>
+                </button>
+                <h2>📸 Défi Photo</h2>
+                <div id="photo-content">
+                    <p id="photo-instructions"></p>
+                    
+                    <div id="photo-capture-section">
+                        <div id="camera-container">
+                            <video id="camera-video" autoplay playsinline></video>
+                            <canvas id="photo-canvas" style="display: none;"></canvas>
+                        </div>
+                        
+                        <div id="photo-controls">
+                            <button id="start-camera-btn" class="photo-btn">📷 Activer caméra</button>
+                            <button id="take-photo-btn" class="photo-btn" style="display: none;">📸 Prendre photo</button>
+                            <button id="retake-photo-btn" class="photo-btn" style="display: none;">🔄 Reprendre</button>
+                        </div>
+                        
+                        <div id="photo-preview" style="display: none;">
+                            <img id="captured-photo" alt="Photo capturée">
+                            <div id="photo-info">
+                                <p>Taille: <span id="photo-size"></span></p>
+                                <p>Qualité: <span id="photo-quality"></span></p>
+                            </div>
+                        </div>
+                        
+                        <div id="photo-actions" style="display: none;">
+                            <button id="submit-photo-btn" class="photo-btn success">✅ Envoyer pour validation</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- Configuration locale OpenRouteService (optionnel, ignoré par git) -->
+    <script>
+        // Tenter de charger la config locale si elle existe
+        const orsConfigScript = document.createElement('script');
+        orsConfigScript.src = './ors-config.local.js';
+        orsConfigScript.onerror = () => console.log('ℹ️ Pas de config ORS locale (normal si sur Netlify)');
+        document.head.appendChild(orsConfigScript);
+    </script>
+    
+    <!-- Firebase v9 SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { firebaseConfig } from './firebase-config.js?v=20251012185800';
+        import FirebaseService from './firebase-service.js?v=20251012185800';
+        
+        // Initialiser Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const firebaseService = new FirebaseService(db);
+        
+        // Exposer globalement pour script.js
+        window.firebaseApp = app;
+        window.firebaseDb = db;
+        window.firebaseService = firebaseService;
+        
+        // Initialiser l'application une fois Firebase prêt
+        window.addEventListener('DOMContentLoaded', () => {
+            if (window.initializeApp) {
+                window.initializeApp();
+            }
+        });
+    </script>
+    
+    <script src="script.js?v=20251012185800"></script>
+</body>
+</html>

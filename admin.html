@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Jeu de Piste</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&display=swap" rel="stylesheet">
+    
+    <!-- Leaflet CSS pour la carte -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <link rel="stylesheet" href="admin-style.css?v=20251012180000">
+</head>
+<body>
+    <div id="admin-app">
+        <!-- Modal d'authentification admin -->
+        <div id="admin-auth-modal" class="modal">
+            <div class="modal-content">
+                <h2>🔐 Accès Administrateur</h2>
+                <p>Connectez-vous avec votre compte Firebase :</p>
+                <input type="email" id="admin-email" placeholder="Email administrateur" required>
+                <input type="password" id="admin-password" placeholder="Mot de passe" required>
+                <button id="admin-login-btn">Se connecter</button>
+                <div id="auth-error" class="error-message" style="display: none;"></div>
+                <div id="auth-loading" style="display: none;">
+                    <p>🔄 Connexion en cours...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interface admin principale -->
+        <div id="admin-interface" style="display: none;">
+            <header>
+                <h1>🎯 Administration - Jeu de Piste</h1>
+                <div class="admin-info">
+                    <span id="session-info">Session active</span>
+                    <button id="logout-btn">Déconnexion</button>
+                </div>
+            </header>
+
+            <main>
+                <!-- Statistiques générales -->
+                <section class="stats-section">
+                    <h2>📊 Vue d'ensemble</h2>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h3>Équipes actives</h3>
+                            <span id="active-teams-count">0</span>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Validations photos</h3>
+                            <span id="pending-validations-count">0</span>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Demandes d'aide</h3>
+                            <span id="help-requests-count">0</span>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Équipes terminées</h3>
+                            <span id="completed-teams-count">0</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Validations photos -->
+                <section class="validations-section">
+                    <h2>📸 Validations Photos</h2>
+                    <div id="pending-validations">
+                        <p class="no-data">Aucune validation en attente</p>
+                    </div>
+                </section>
+
+                <!-- Demandes d'aide -->
+                <section class="help-requests-section">
+                    <h2>🆘 Demandes d'Aide</h2>
+                    <div id="help-requests-list">
+                        <p class="no-data">Aucune demande d'aide en attente</p>
+                    </div>
+                </section>
+
+                <!-- Équipes et progression -->
+                <section class="teams-section">
+                    <h2>👥 Équipes et Progression</h2>
+                    <div class="section-controls">
+                        <button id="refresh-teams-btn" class="info-btn">🔄 Actualiser</button>
+                        <span id="last-update" class="last-update">Dernière mise à jour : jamais</span>
+                    </div>
+                    <div id="teams-list">
+                        <p class="no-data">Aucune équipe active</p>
+                    </div>
+                </section>
+
+                <!-- Carte de tracking en temps réel -->
+                <section class="tracking-section">
+                    <h2>🗺️ Tracking GPS en Temps Réel</h2>
+                    <div class="tracking-info-bar">
+                        <span id="tracking-teams-count">0 équipe(s) en jeu</span>
+                        <span id="tracking-last-update">Dernière mise à jour : -</span>
+                        <button id="tracking-center-all-btn" class="info-btn-small">🎯 Centrer sur toutes les équipes</button>
+                    </div>
+                    <div class="tracking-map-container">
+                        <div class="tracking-legend">
+                            <h3>Équipes :</h3>
+                            <div id="tracking-teams-list">
+                                <p>Aucune équipe avec position GPS</p>
+                            </div>
+                        </div>
+                        <div class="tracking-map-section">
+                            <div id="tracking-live-map"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Gestion des équipes -->
+                <section class="teams-management">
+                    <h2>🏆 Gestion des Équipes</h2>
+                    <div class="management-header">
+                        <button id="create-team-btn" class="success-btn">➕ Créer une équipe</button>
+                    </div>
+                    <div id="teams-management-list">
+                        <p class="no-data">Aucune équipe créée</p>
+                    </div>
+                </section>
+
+                <!-- Section utilisateurs supprimée - 1 équipe = 1 joueur -->
+
+                <!-- Guide de configuration -->
+                <section class="configuration-guide">
+                    <h2>📋 Guide de Configuration</h2>
+                    <div class="config-steps">
+                        <div class="config-step">
+                            <span class="step-number">1️⃣</span>
+                            <span class="step-title">Créer les checkpoints</span>
+                            <span class="step-description">Points d'intérêt avec énigmes, photos, etc.</span>
+                        </div>
+                        <div class="config-step">
+                            <span class="step-number">2️⃣</span>
+                            <span class="step-title">Définir les parcours</span>
+                            <span class="step-description">Ordre des checkpoints pour chaque équipe</span>
+                        </div>
+                        <div class="config-step">
+                            <span class="step-number">3️⃣</span>
+                            <span class="step-title">Créer les équipes</span>
+                            <span class="step-description">Assigner un parcours à chaque équipe</span>
+                        </div>
+                        <div class="config-step">
+                            <span class="step-number">✅</span>
+                            <span class="step-title">C'est prêt !</span>
+                            <span class="step-description">1 équipe = 1 téléphone - plus simple !</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Gestion des checkpoints -->
+                <section class="checkpoints-management">
+                    <h2>📍 Gestion des Checkpoints <span class="step-indicator">Étape 1</span></h2>
+                    <div class="management-header">
+                        <button id="create-checkpoint-btn" class="success-btn">➕ Créer un checkpoint</button>
+                    </div>
+                    <div id="checkpoints-management-list">
+                        <p class="no-data">Aucun checkpoint créé</p>
+                    </div>
+                </section>
+
+                <!-- Gestion des parcours -->
+                <section class="routes-management">
+                    <h2>🛤️ Gestion des Parcours <span class="step-indicator">Étape 2</span></h2>
+                    <div class="management-header">
+                        <button id="create-route-btn" class="success-btn">➕ Créer un parcours</button>
+                        <button id="show-routes-map-btn" class="info-btn">🗺️ Visualiser sur carte</button>
+                    </div>
+                    <div id="routes-management-list">
+                        <p class="no-data">Aucun parcours défini</p>
+                    </div>
+                </section>
+
+                <!-- Actions rapides -->
+                <section class="quick-actions">
+                    <h2>⚡ Actions rapides</h2>
+                    <div class="actions-grid">
+                        <button id="reset-all-teams" class="danger-btn">🔄 Reset toutes les équipes</button>
+                        <button id="reset-all-progressions" class="warning-btn">🏠 Reset progressions → Lobby</button>
+                        <button id="export-data" class="info-btn">📊 Exporter les données</button>
+                        <button id="refresh-data" class="success-btn">🔄 Actualiser</button>
+                        <button id="fix-consistency-btn" class="info-btn">🔧 Corriger cohérence données</button>
+                        <button id="cleanup-users-btn" class="warning-btn">🧹 Nettoyer utilisateurs obsolètes</button>
+                        <button id="cleanup-all-btn" class="danger-btn">🚨 NETTOYER TOUT Firebase</button>
+                    </div>
+                </section>
+
+                <!-- Logs de Debug -->
+                <section class="debug-logs-section">
+                    <h2>📝 Logs de Debug</h2>
+                    <div class="section-controls">
+                        <label for="team-logs-select">Équipe:</label>
+                        <select id="team-logs-select">
+                            <option value="">Sélectionner une équipe...</option>
+                        </select>
+                        <button id="load-logs-btn">📥 Charger les logs</button>
+                        <button id="download-logs-btn" style="display: none;">💾 Télécharger</button>
+                        <button id="delete-team-logs-btn" style="display: none;">🗑️ Supprimer logs équipe</button>
+                        <button id="delete-all-logs-btn">🚨 Nettoyer TOUS les logs</button>
+                    </div>
+                    <div id="debug-logs-list">
+                        <p class="no-data">Sélectionnez une équipe pour voir ses logs de debug 🔍</p>
+                    </div>
+                </section>
+            </main>
+        </div>
+
+        <!-- Modal modification parcours -->
+        <div id="edit-route-modal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <h2>✏️ Modifier le parcours</h2>
+                <div id="edit-route-info">
+                    <p><strong>Nom actuel:</strong> <span id="edit-route-name"></span></p>
+                    <p><strong>Checkpoints actuels:</strong> <span id="edit-current-checkpoints"></span></p>
+                </div>
+                
+                <form id="edit-route-form">
+                    <input type="text" id="edit-route-name-input" placeholder="Nouveau nom du parcours" required>
+                    
+                    <div class="route-builder">
+                        <h3>📍 Construire le parcours :</h3>
+                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 1rem;">
+                            ☑️ Cochez les checkpoints à inclure • ⋮⋮ Glissez pour réorganiser l'ordre
+                        </p>
+                        <div id="checkpoints-list">
+                            <!-- Checkpoints avec checkboxes seront ajoutés ici -->
+                        </div>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button type="button" id="cancel-edit-route-btn" class="cancel-btn">Annuler</button>
+                        <button type="submit" class="success-btn">💾 Sauvegarder</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal modification équipe -->
+        <div id="edit-team-modal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <h2>✏️ Modifier l'équipe</h2>
+                <div id="edit-team-current-info">
+                    <!-- Infos actuelles de l'équipe -->
+                </div>
+                
+                <form id="edit-team-form">
+                    <input type="text" id="edit-team-name-input" placeholder="Nom de l'équipe" required>
+                    <input type="color" id="edit-team-color-input" title="Couleur de l'équipe">
+                    <input type="password" id="edit-team-password-input" placeholder="Nouveau mot de passe (optionnel)">
+                    
+                    <div class="modal-actions">
+                        <button type="button" id="cancel-edit-team-btn" class="cancel-btn">Annuler</button>
+                        <button type="submit" class="success-btn">💾 Sauvegarder</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Notifications -->
+        <div id="admin-notifications"></div>
+
+        <!-- Modal création équipe -->
+        <div id="create-team-modal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <h2>🏆 Créer une Équipe</h2>
+                <form id="create-team-form">
+                    <input type="text" id="team-name" placeholder="Nom de l'équipe" required>
+                    <input type="password" id="team-password" placeholder="Mot de passe équipe" required>
+                    <input type="color" id="team-color" value="#e74c3c" title="Couleur de l'équipe">
+                    <select id="team-route" required>
+                        <option value="">-- Choisir un parcours --</option>
+                    </select>
+                    <div class="modal-actions">
+                        <button type="button" id="cancel-team-btn" class="cancel-btn">Annuler</button>
+                        <button type="submit" class="success-btn">Créer l'équipe</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal création utilisateur supprimée - 1 équipe = 1 joueur -->
+
+        <!-- Modal modification parcours équipe -->
+        <div id="edit-team-route-modal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <h2>🛤️ Modifier le Parcours</h2>
+                <div id="edit-team-info">
+                    <p><strong>Équipe :</strong> <span id="edit-team-name"></span></p>
+                    <p><strong>Parcours actuel :</strong> <span id="edit-current-route"></span></p>
+                </div>
+                <form id="edit-team-route-form">
+                    <select id="edit-team-route-select" required>
+                        <option value="">-- Choisir un nouveau parcours --</option>
+                    </select>
+                    <div class="modal-actions">
+                        <button type="button" id="cancel-edit-team-route-btn" class="cancel-btn">Annuler</button>
+                        <button type="submit" class="success-btn">Modifier le parcours</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal création checkpoint -->
+        <div id="create-checkpoint-modal" class="modal" style="display: none;">
+            <div class="modal-content checkpoint-modal">
+                <h2>📍 Créer un Checkpoint</h2>
+                <div class="checkpoint-form-container">
+                    <!-- Carte interactive -->
+                    <div class="map-section">
+                        <div class="search-container">
+                            <input type="text" id="address-search" placeholder="🔍 Rechercher une adresse...">
+                            <button type="button" id="search-btn">Rechercher</button>
+                        </div>
+                        <div id="checkpoint-map"></div>
+                        <p class="map-instruction">📍 Cliquez sur la carte pour sélectionner les coordonnées</p>
+                    </div>
+                    
+                    <!-- Formulaire -->
+                    <div class="form-section">
+                        <form id="create-checkpoint-form">
+                            <input type="text" id="checkpoint-name" placeholder="Nom du checkpoint" required>
+                            <input type="text" id="checkpoint-emoji" placeholder="Emoji (ex: 🏛️)" required>
+                            
+                            <div class="coordinate-display">
+                                <label>Coordonnées sélectionnées :</label>
+                                <div class="coordinate-inputs">
+                                    <input type="number" id="checkpoint-lat" placeholder="Latitude" step="any" required readonly>
+                                    <input type="number" id="checkpoint-lng" placeholder="Longitude" step="any" required readonly>
+                                </div>
+                            </div>
+                            
+                            <select id="checkpoint-type" required>
+                                <option value="">-- Type de checkpoint --</option>
+                                <option value="lobby">🏠 Lobby (point de départ)</option>
+                                <option value="enigma">🧩 Énigme</option>
+                                <option value="photo">📸 Photo à prendre</option>
+                                <option value="audio">🎤 Épreuve audio</option>
+                                <option value="qcm">📋 QCM (Quiz)</option>
+                                <option value="instruction">📄 Instructions simples</option>
+                                <option value="info">ℹ️ Information à trouver</option>
+                                <option value="final">🏆 Point final</option>
+                            </select>
+                            
+                            <!-- Contenu dynamique selon le type -->
+                            <div id="dynamic-content">
+                                <p class="content-instruction">Sélectionnez un type de checkpoint pour voir les options</p>
+                            </div>
+                            
+                            <div class="modal-actions">
+                                <button type="button" id="cancel-checkpoint-btn" class="cancel-btn">Annuler</button>
+                                <button type="submit" class="success-btn">Créer le checkpoint</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal création parcours -->
+        <div id="create-route-modal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <h2>🛤️ Créer un Parcours</h2>
+                <form id="create-route-form">
+                    <input type="text" id="route-name" placeholder="Nom du parcours" required>
+                    <div id="route-checkpoints">
+                        <label>Construire le parcours :</label>
+                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 1rem;">
+                            ☑️ Cochez les checkpoints à inclure • ⋮⋮ Glissez pour réorganiser l'ordre
+                        </p>
+                        <div id="checkpoint-order-list">
+                            <p>Créez d'abord des checkpoints</p>
+                        </div>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" id="cancel-route-btn" class="cancel-btn">Annuler</button>
+                        <button type="submit" class="success-btn">Créer le parcours</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal visualisation parcours -->
+        <div id="routes-map-modal" class="modal" style="display: none;">
+            <div class="modal-content routes-map-modal">
+                <h2>🗺️ Visualisation des Parcours</h2>
+                <div class="routes-map-container">
+                    <div class="routes-legend">
+                        <h3>Légende :</h3>
+                        <div id="routes-legend-list">
+                            <p>Aucun parcours à afficher</p>
+                        </div>
+                    </div>
+                    <div class="routes-map-section">
+                        <div id="routes-visualization-map"></div>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" id="close-routes-map-btn" class="cancel-btn">Fermer</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Modal d'édition de checkpoint -->
+    <div id="edit-checkpoint-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="hideEditCheckpointModal()">&times;</span>
+            <h2>✏️ Modifier le Checkpoint</h2>
+            
+            <form id="edit-checkpoint-form">
+                <input type="text" id="edit-checkpoint-name" placeholder="Nom du checkpoint" required>
+                <input type="text" id="edit-checkpoint-emoji" placeholder="Emoji (ex: 🏛️)" required>
+                
+                <div class="coordinate-display">
+                    <label>Coordonnées :</label>
+                    <div class="coordinate-inputs">
+                        <input type="number" id="edit-checkpoint-lat" placeholder="Latitude" step="any" required>
+                        <input type="number" id="edit-checkpoint-lng" placeholder="Longitude" step="any" required>
+                    </div>
+                </div>
+                
+                <select id="edit-checkpoint-type" required>
+                    <option value="">-- Type de checkpoint --</option>
+                    <option value="lobby">🏠 Lobby (point de départ)</option>
+                    <option value="enigma">🧩 Énigme</option>
+                    <option value="photo">📸 Photo à prendre</option>
+                    <option value="audio">🎤 Épreuve audio</option>
+                    <option value="qcm">📋 QCM (Quiz)</option>
+                    <option value="instruction">📄 Instructions simples</option>
+                    <option value="info">ℹ️ Information à trouver</option>
+                    <option value="final">🏆 Point final</option>
+                </select>
+                
+                <!-- Contenu dynamique selon le type -->
+                <div id="edit-dynamic-content">
+                    <!-- Le contenu sera généré dynamiquement -->
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="submit" class="success-btn">💾 Sauvegarder</button>
+                    <button type="button" onclick="hideEditCheckpointModal()" class="cancel-btn">Annuler</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Leaflet JS pour la carte -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { firebaseConfig } from './firebase-config.js';
+        import FirebaseService from './firebase-service.js?v=20251012180000';
+        
+        // Initialiser Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const firebaseService = new FirebaseService(db);
+        
+        // Exposer globalement
+        window.firebaseApp = app;
+        window.firebaseDb = db;
+        window.firebaseAuth = auth;
+        window.firebaseService = firebaseService;
+        
+        // Initialiser l'admin une fois Firebase prêt
+        window.addEventListener('DOMContentLoaded', () => {
+            if (window.initializeAdmin) {
+                window.initializeAdmin();
+            }
+        });
+    </script>
+    
+    <!-- Modale de nettoyage sélectif Firebase -->
+    <div id="cleanup-modal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2>🧹 Nettoyage Sélectif Firebase</h2>
+                <span class="close-modal" onclick="closeCleanupModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p style="color: #f39c12; margin-bottom: 20px;">
+                    ⚠️ <strong>Attention :</strong> Cette action est <strong>IRRÉVERSIBLE</strong> !<br>
+                    Sélectionnez les données à supprimer :
+                </p>
+                
+                <div class="cleanup-options">
+                    <label class="cleanup-checkbox">
+                        <input type="checkbox" id="cleanup-teams" value="teams">
+                        <span class="checkbox-label">
+                            <strong>🏆 Équipes</strong>
+                            <small>Toutes les équipes et leurs progressions</small>
+                        </span>
+                    </label>
+                    
+                    <label class="cleanup-checkbox">
+                        <input type="checkbox" id="cleanup-users" value="users">
+                        <span class="checkbox-label">
+                            <strong>👥 Utilisateurs</strong>
+                            <small>Tous les comptes utilisateurs (obsolètes)</small>
+                        </span>
+                    </label>
+                    
+                    <label class="cleanup-checkbox">
+                        <input type="checkbox" id="cleanup-checkpoints" value="checkpoints">
+                        <span class="checkbox-label">
+                            <strong>📍 Checkpoints</strong>
+                            <small>Tous les points d'intérêt</small>
+                        </span>
+                    </label>
+                    
+                    <label class="cleanup-checkbox">
+                        <input type="checkbox" id="cleanup-routes" value="routes">
+                        <span class="checkbox-label">
+                            <strong>🛤️ Parcours</strong>
+                            <small>Toutes les routes configurées</small>
+                        </span>
+                    </label>
+                    
+                    <label class="cleanup-checkbox">
+                        <input type="checkbox" id="cleanup-validations" value="validations">
+                        <span class="checkbox-label">
+                            <strong>✅ Validations</strong>
+                            <small>Toutes les demandes de validation photo</small>
+                        </span>
+                    </label>
+                    
+                    <label class="cleanup-checkbox">
+                        <input type="checkbox" id="cleanup-help" value="help_requests">
+                        <span class="checkbox-label">
+                            <strong>🆘 Demandes d'aide</strong>
+                            <small>Toutes les demandes d'assistance</small>
+                        </span>
+                    </label>
+                    
+                    <label class="cleanup-checkbox">
+                        <input type="checkbox" id="cleanup-logs" value="admin_logs">
+                        <span class="checkbox-label">
+                            <strong>📝 Logs Admin</strong>
+                            <small>Tous les logs d'actions admin</small>
+                        </span>
+                    </label>
+                </div>
+                
+                <div class="cleanup-actions" style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+                    <button onclick="selectAllCleanup()" class="info-btn" style="margin-right: auto;">
+                        ☑️ Tout sélectionner
+                    </button>
+                    <button onclick="deselectAllCleanup()" class="secondary-btn" style="margin-right: auto;">
+                        ⬜ Tout désélectionner
+                    </button>
+                    <button onclick="closeCleanupModal()" class="secondary-btn">
+                        ❌ Annuler
+                    </button>
+                    <button onclick="confirmCleanup()" class="danger-btn">
+                        🗑️ Supprimer la sélection
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <style>
+        /* === MODALE DE NETTOYAGE === */
+        #cleanup-modal.modal {
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(38, 8, 6, 0.85);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        
+        #cleanup-modal .modal-content {
+            background: linear-gradient(135deg, #f6f8f9 0%, #ffffff 100%);
+            padding: 0;
+            border-radius: var(--radius-xl, 16px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1);
+            max-height: 90vh;
+            overflow-y: auto;
+            max-width: 650px;
+            width: 100%;
+            animation: modalSlideIn 0.3s ease-out;
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        #cleanup-modal .modal-header {
+            background: linear-gradient(135deg, #5D2DE6 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem 2rem;
+            border-radius: var(--radius-xl, 16px) var(--radius-xl, 16px) 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(93, 45, 230, 0.3);
+        }
+        
+        #cleanup-modal .modal-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-family: 'Oswald', sans-serif;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        
+        #cleanup-modal .close-modal {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+            transition: all 0.2s ease;
+            padding: 0.25rem 0.5rem;
+            border-radius: 8px;
+        }
+        
+        #cleanup-modal .close-modal:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: rotate(90deg);
+        }
+        
+        #cleanup-modal .modal-body {
+            padding: 2rem;
+        }
+        
+        #cleanup-modal .modal-body > p {
+            color: #d35400;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: rgba(243, 156, 18, 0.1);
+            border-left: 4px solid #f39c12;
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+        
+        .cleanup-options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .cleanup-checkbox {
+            display: flex;
+            align-items: flex-start;
+            padding: 1rem 1.25rem;
+            border: 2px solid var(--gray-200, #E2E4E4);
+            border-radius: var(--radius-lg, 12px);
+            cursor: pointer;
+            transition: all 0.25s ease;
+            background: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .cleanup-checkbox::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(93, 45, 230, 0.05), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .cleanup-checkbox:hover::before {
+            left: 100%;
+        }
+        
+        .cleanup-checkbox:hover {
+            border-color: var(--primary, #5D2DE6);
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(93, 45, 230, 0.1);
+        }
+        
+        .cleanup-checkbox input[type="checkbox"] {
+            margin-right: 1rem;
+            margin-top: 2px;
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+            accent-color: var(--primary, #5D2DE6);
+            border-radius: 4px;
+        }
+        
+        .cleanup-checkbox input[type="checkbox"]:checked + .checkbox-label {
+            color: #e74c3c;
+        }
+        
+        .cleanup-checkbox input[type="checkbox"]:checked + .checkbox-label strong {
+            color: #c0392b;
+        }
+        
+        .checkbox-label {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            flex: 1;
+        }
+        
+        .checkbox-label strong {
+            font-size: 1rem;
+            font-family: 'Oswald', sans-serif;
+            font-weight: 600;
+            color: var(--gray-900, #333333);
+        }
+        
+        .checkbox-label small {
+            color: var(--gray-600, #69727D);
+            font-size: 0.875rem;
+            line-height: 1.4;
+        }
+        
+        .cleanup-actions {
+            margin-top: 1.5rem;
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+        
+        .cleanup-actions .info-btn,
+        .cleanup-actions .secondary-btn,
+        .cleanup-actions .danger-btn {
+            position: relative;
+            overflow: hidden;
+            font-family: 'Oswald', sans-serif;
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-lg, 12px);
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .cleanup-actions .info-btn {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            margin-right: auto;
+        }
+        
+        .cleanup-actions .info-btn:hover {
+            background: linear-gradient(135deg, #2980b9 0%, #3498db 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+        
+        .cleanup-actions .secondary-btn {
+            background: linear-gradient(135deg, var(--gray-400, #ADADAD) 0%, var(--gray-500, #71717A) 100%);
+            color: white;
+            margin-right: auto;
+        }
+        
+        .cleanup-actions .secondary-btn:hover {
+            background: linear-gradient(135deg, var(--gray-500, #71717A) 0%, var(--gray-600, #69727D) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(113, 113, 122, 0.4);
+        }
+        
+        .cleanup-actions .danger-btn {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+        }
+        
+        .cleanup-actions .danger-btn:hover {
+            background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(231, 76, 60, 0.5);
+        }
+        
+        .cleanup-actions button:active {
+            transform: translateY(0);
+        }
+        
+        /* Effet de brillance sur les boutons */
+        .cleanup-actions button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .cleanup-actions button:hover::before {
+            left: 100%;
+        }
+        
+        /* Responsive */
+        @media (max-width: 640px) {
+            #cleanup-modal .modal-content {
+                max-width: 100%;
+                margin: 0.5rem;
+            }
+            
+            #cleanup-modal .modal-body {
+                padding: 1.5rem;
+            }
+            
+            .cleanup-actions {
+                flex-direction: column;
+            }
+            
+            .cleanup-actions button {
+                width: 100%;
+                margin: 0 !important;
+            }
+        }
+    </style>
+    
+    <script src="admin-script.js?v=20251012180000"></script>
+</body>
+</html>

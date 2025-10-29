@@ -1,0 +1,138 @@
+# ========================================
+# FICHIERS DE CONFIGURATION SENSIBLES
+# ========================================
+# ⚠️ NE JAMAIS COMMITER CES FICHIERS !
+
+# Configuration Firebase avec vraies clés API
+firebase-config.js
+
+# Variables d'environnement
+.env
+.env.local
+.env.development
+.env.production
+.env*.local
+
+# Fichiers de configuration personnels
+config.local.js
+*-config.local.js
+ors-config.local.js
+
+# ========================================
+# NETLIFY & DÉPLOIEMENT
+# ========================================
+.netlify/
+.netlify.state
+
+# ========================================
+# LOGS & DEBUGGING
+# ========================================
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ========================================
+# DÉPENDANCES
+# ========================================
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# ========================================
+# BUILD & DISTRIBUTION
+# ========================================
+dist/
+dist-ssr/
+build/
+.cache/
+*.local
+
+# ========================================
+# IDE & ÉDITEURS
+# ========================================
+# VSCode
+.vscode/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json.example
+
+# JetBrains (WebStorm, IntelliJ, etc.)
+.idea/
+*.iml
+*.iws
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# ========================================
+# OS & SYSTÈME
+# ========================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+# ========================================
+# SÉCURITÉ & CLÉS
+# ========================================
+# Clés API et secrets
+*.key
+*.pem
+*.p12
+*.pfx
+secrets.json
+credentials.json
+
+# Fichiers de sauvegarde contenant potentiellement des données sensibles
+*.backup
+*.bak
+*.old
+
+# ========================================
+# DONNÉES TEMPORAIRES
+# ========================================
+tmp/
+temp/
+*.tmp
+.temp/
+
+# ========================================
+# TESTS & COVERAGE
+# ========================================
+coverage/
+*.lcov
+.nyc_output/
+
+# ========================================
+# AUTRES
+# ========================================
+# Fichiers de lock système
+*.lock
+.lock
