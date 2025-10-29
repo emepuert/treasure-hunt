@@ -1,122 +1,120 @@
-# 🏛️ Jeu de Piste - Application Web Interactive
+# 🏛️ Treasure Hunt - Interactive Web Application
 
-Une application web interactive de jeu de piste géolocalisé pour découvrir des lieux lors d'événements de team building ou touristiques.
+An interactive web application for geolocated treasure hunts to discover places during team building events or tourist activities.
 
-## 🎯 Fonctionnalités
+## 🎯 Features
 
-- **Carte interactive** avec OpenStreetMap (API gratuite)
-- **Géolocalisation GPS** en temps réel
-- **Interface admin** complète pour gérer les équipes et parcours
-- **Détection de proximité** automatique (50m)
-- **Interface mobile-first** optimisée
-- **Firebase backend** pour la synchronisation temps réel
-- **Système d'équipes** avec progression individuelle
-- **Types de défis variés** (énigmes, photos, informations)
+- **Interactive map** with OpenStreetMap (free API)
+- **Real-time GPS geolocation**
+- **Complete admin interface** to manage teams and routes
+- **Automatic proximity detection** (50m)
+- **Mobile-first optimized interface**
+- **Firebase backend** for real-time synchronization
+- **Team system** with individual progression
+- **Varied challenge types** (riddles, photos, information)
 
 ## 🚀 Installation
 
-### 1. Configuration Firebase
+### 1. Firebase Configuration
 
-1. Créez un projet Firebase sur [https://console.firebase.google.com/](https://console.firebase.google.com/)
-2. Activez Firestore Database et Authentication
-3. Copiez `firebase-config.template.js` vers `firebase-config.js`
-4. Remplacez les valeurs par vos vraies clés Firebase :
+1. Create a Firebase project on [https://console.firebase.google.com/](https://console.firebase.google.com/)
+2. Enable Firestore Database and Authentication
+3. Create a `firebase-config.js` file with your Firebase keys:
 
 ```javascript
 export const firebaseConfig = {
-    apiKey: "VOTRE_API_KEY",
-    authDomain: "VOTRE_PROJECT_ID.firebaseapp.com",
-    projectId: "VOTRE_PROJECT_ID",
-    storageBucket: "VOTRE_PROJECT_ID.firebasestorage.app",
-    messagingSenderId: "VOTRE_SENDER_ID",
-    appId: "VOTRE_APP_ID",
-    measurementId: "VOTRE_MEASUREMENT_ID"
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT_ID.firebasestorage.app",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID",
+    measurementId: "YOUR_MEASUREMENT_ID"
 };
 ```
 
-### 2. Déploiement
+### 2. Deployment
 
-- **GitHub Pages** : Activez GitHub Pages dans les paramètres du repository
-- **Netlify/Vercel** : Connectez votre repository pour un déploiement automatique
-- **Serveur local** : Utilisez `python -m http.server` ou `npx serve`
+- **GitHub Pages**: Enable GitHub Pages in repository settings
+- **Netlify/Vercel**: Connect your repository for automatic deployment
+- **Local server**: Use `python -m http.server` or `npx serve`
 
-## 🎮 Utilisation
+## 🎮 Usage
 
-### Interface Joueur
-1. Ouvrez `index.html` dans votre navigateur mobile
-2. Connectez-vous avec vos identifiants fournis par l'organisateur
-3. Autorisez la géolocalisation
-4. Suivez les indices pour découvrir les points d'intérêt
+### Player Interface
+1. Open `index.html` in your mobile browser
+2. Log in with your credentials provided by the organizer
+3. Allow geolocation
+4. Follow the clues to discover points of interest
 
-### Interface Admin
-1. Accédez à `admin.html`
-2. Connectez-vous avec votre compte Firebase
-3. Créez des équipes, utilisateurs, checkpoints et parcours
-4. Suivez la progression en temps réel
-5. Gérez les validations manuelles
+### Admin Interface
+1. Access `admin.html`
+2. Log in with your Firebase account
+3. Create teams, users, checkpoints and routes
+4. Track progress in real-time
+5. Manage manual validations
 
-## 📱 Compatibilité
+## 📱 Compatibility
 
-- ✅ Smartphones iOS/Android
-- ✅ Navigateurs modernes (Chrome, Safari, Firefox)
-- ✅ HTTPS requis pour la géolocalisation
+- ✅ iOS/Android smartphones
+- ✅ Modern browsers (Chrome, Safari, Firefox)
+- ✅ HTTPS required for geolocation
 
 ## 🛠️ Technologies
 
-- **Frontend** : HTML5, CSS3, JavaScript vanilla
-- **Cartographie** : Leaflet.js + OpenStreetMap
-- **Backend** : Firebase (Firestore + Authentication)
-- **Navigation GPS** : OpenRouteService API
-- **Déploiement** : GitHub Pages compatible
+- **Frontend**: HTML5, CSS3, Vanilla JavaScript
+- **Mapping**: Leaflet.js + OpenStreetMap
+- **Backend**: Firebase (Firestore + Authentication)
+- **GPS Navigation**: OpenRouteService API
+- **Deployment**: GitHub Pages compatible
 
-## 🧪 Test en Local
+## 🧪 Local Testing
 
-Pour tester sans être sur le terrain, utilisez la console du navigateur :
+To test without being on the field, use the browser console:
 
 ```javascript
-// Simuler une position
+// Simulate a position
 simulatePosition(49.0928, 6.1907);
 ```
 
-## ⚠️ Sécurité
+## ⚠️ Security
 
-- **Ne commitez jamais** le fichier `firebase-config.js` avec de vraies clés
-- Utilisez le template `firebase-config.template.js` 
-- Configurez les règles de sécurité Firestore appropriées
-- HTTPS obligatoire pour la géolocalisation
+- **Never commit** the `firebase-config.js` file with real keys
+- Configure appropriate Firestore security rules
+- HTTPS mandatory for geolocation
 
-## 🎉 Fonctionnalités Avancées
+## 🎉 Advanced Features
 
-- **Synchronisation temps réel** entre joueurs et admin
-- **Types de défis multiples** : énigmes, photos, informations
-- **Gestion d'équipes** avec couleurs et parcours personnalisés
-- **Interface admin mobile-friendly**
-- **Notifications en temps réel**
-- **Système de reset et gestion des progressions**
+- **Real-time synchronization** between players and admin
+- **Multiple challenge types**: riddles, photos, information
+- **Team management** with colors and custom routes
+- **Mobile-friendly admin interface**
+- **Real-time notifications**
+- **Reset system and progression management**
 
-## 📜 Licence
+## 📜 License
 
 [![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 
-Ce projet est sous licence **Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International** ([CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)).
+This project is licensed under **Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International** ([CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)).
 
-### Ce que cela signifie :
+### What this means:
 
-✅ **Tu PEUX** :
-- Utiliser ce code pour des projets personnels ou éducatifs
-- Modifier et adapter le code
-- Partager le code avec d'autres
+✅ **You CAN**:
+- Use this code for personal or educational projects
+- Modify and adapt the code
+- Share the code with others
 
-❌ **Tu NE PEUX PAS** :
-- Vendre ce code ou l'utiliser commercialement
-- Retirer les mentions de l'auteur original
+❌ **You CANNOT**:
+- Sell this code or use it commercially
+- Remove credit to the original author
 
-📋 **Si tu modifies** :
-- Tu dois partager tes modifications sous la même licence CC BY-NC-SA 4.0
-- Tu dois créditer l'auteur original
+📋 **If you modify**:
+- You must share your modifications under the same CC BY-NC-SA 4.0 license
+- You must credit the original author
 
-Pour plus d'informations, consulte le [texte complet de la licence](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode).
+For more information, see the [full license text](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode).
 
 ---
 
-🚀 **Prêt pour votre prochain événement de team building !**
+🚀 **Ready for your next team building event!**
