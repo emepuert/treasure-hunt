@@ -7,12 +7,11 @@
 // En développement local, elles viennent de .env
 // Sur Netlify, elles sont injectées au build time
 export const ENV_CONFIG = {
-    // API OpenRouteService - Clé pour développement/production
-    // En production Netlify, utilisez les variables d'environnement
-    orsApiKey: import.meta?.env?.VITE_OPENROUTESERVICE_API_KEY || 
-               window.ENV?.OPENROUTESERVICE_API_KEY || 
+    // API OpenRouteService - Clé chargée depuis variables d'environnement Netlify
+    // En développement local, utilisez ors-config.local.js
+    orsApiKey: window.ENV?.OPENROUTESERVICE_API_KEY || 
                window.ORS_API_KEY ||
-               'eyJvcmciOiI1YjNjZTM1OTc4NTExMDAwMDFjZjYyNDgiLCJpZCI6ImIwZTZkMWYwZDBkODhlYzNiNGE3YmEyYmZmOWQ1NjJiOWZmMzMzZDQzZDFkNjRjMmMxNmMwZGJiIiwiaCI6Im11cm11cjY0In0=',
+               '', // ⚠️ À configurer dans Netlify Environment Variables
     
     // Autres configs non sensibles
     isDevelopment: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1',

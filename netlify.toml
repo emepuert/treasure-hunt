@@ -1,8 +1,7 @@
 # Configuration Netlify pour l'app Team Building
 [build]
-  # Pas de build nécessaire (app statique)
-  # Si tu veux utiliser les variables d'environnement, décommente la ligne suivante :
-  # command = "node build-config.js"
+  # Build pour injecter les variables d'environnement
+  command = "node build-config-netlify.js"
   publish = "."
 
 # Headers HTTP pour éviter les problèmes de cache

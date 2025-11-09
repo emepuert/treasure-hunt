@@ -369,6 +369,10 @@
     
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
+    <!-- Configuration ORS générée par Netlify -->
+    <script src="./ors-config.generated.js" onerror="console.log('ℹ️ Config ORS Netlify non trouvée, utilise locale')"></script>
+    <script src="./ors-config.local.js" onerror="console.log('ℹ️ Pas de config ORS locale')"></script>
+    
     <!-- Firebase v9 SDK -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';

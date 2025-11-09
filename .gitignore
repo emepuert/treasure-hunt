@@ -26,6 +26,9 @@ env.example
 # Dossier du site landing page (séparé du projet principal)
 team-building-jeu-piste-main-site/
 
+# Fichiers générés par Netlify Build (contiennent les clés)
+ors-config.generated.js
+
 # ========================================
 # NETLIFY & DÉPLOIEMENT
 # ========================================
