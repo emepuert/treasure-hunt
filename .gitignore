@@ -28,6 +28,7 @@ team-building-jeu-piste-main-site/
 
 # Fichiers générés par Netlify Build (contiennent les clés)
 ors-config.generated.js
+NETLIFY_SETUP.txt
 
 # ========================================
 # NETLIFY & DÉPLOIEMENT
