@@ -7,16 +7,16 @@
 // En développement local, elles viennent de .env
 // Sur Netlify, elles sont injectées au build time
 export const ENV_CONFIG = {
-    // API OpenRouteService - CONFIGUREZ via variables d'environnement ou window.ORS_API_KEY
-    // Pour dev local: créez le fichier ors-config.local.js (voir env.example)
+    // API OpenRouteService - Clé pour développement/production
+    // En production Netlify, utilisez les variables d'environnement
     orsApiKey: import.meta?.env?.VITE_OPENROUTESERVICE_API_KEY || 
                window.ENV?.OPENROUTESERVICE_API_KEY || 
                window.ORS_API_KEY ||
-               '', // ⚠️ À configurer dans Netlify ou fichier ors-config.local.js
+               'eyJvcmciOiI1YjNjZTM1OTc4NTExMDAwMDFjZjYyNDgiLCJpZCI6ImIwZTZkMWYwZDBkODhlYzNiNGE3YmEyYmZmOWQ1NjJiOWZmMzMzZDQzZDFkNjRjMmMxNmMwZGJiIiwiaCI6Im11cm11cjY0In0=',
     
     // Autres configs non sensibles
     isDevelopment: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1',
-    isProduction: window.location.hostname.includes('netlify.app') || window.location.hostname.includes('firebaseapp.com')
+    isProduction: window.location.hostname.includes('netlify.app') || window.location.hostname.includes('github.io')
 };
 
 // Pour debug (ne pas afficher en production)

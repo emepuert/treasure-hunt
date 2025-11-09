@@ -1,15 +1,13 @@
-﻿// Import de la configuration des variables d'environnement
-import { ENV_CONFIG } from './env-config.js';
-
-// Configuration du jeu de piste - Version 18:58 - Fix bouton fermeture modal énigme
+﻿// Configuration du jeu de piste - Version 18:58 - Fix bouton fermeture modal énigme
+// On charge ENV_CONFIG depuis le scope global (chargé par index.html)
 const GAME_CONFIG = {
     // Centre de la zone de test
     center: [49.0928, 6.1907],
     zoom: 16,
     // Distance en mètres pour déclencher un indice
     proximityThreshold: 50,
-    // Clé API OpenRouteService
-    orsApiKey: ENV_CONFIG.orsApiKey,
+    // Clé API OpenRouteService - sera chargée depuis env-config.js
+    orsApiKey: '', // Sera défini après chargement de ENV_CONFIG
     // Points d'intérêt avec coordonnées et indices
     checkpoints: [] // Maintenant chargés depuis Firebase via l'admin
 };

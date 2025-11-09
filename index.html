@@ -369,21 +369,13 @@
     
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
-    <!-- Configuration locale OpenRouteService (optionnel, ignoré par git) -->
-    <script>
-        // Tenter de charger la config locale si elle existe
-        const orsConfigScript = document.createElement('script');
-        orsConfigScript.src = './ors-config.local.js';
-        orsConfigScript.onerror = () => console.log('ℹ️ Pas de config ORS locale (normal si sur Netlify)');
-        document.head.appendChild(orsConfigScript);
-    </script>
-    
     <!-- Firebase v9 SDK -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
         import { firebaseConfig } from './firebase-config.js?v=20251012185800';
         import FirebaseService from './firebase-service.js?v=20251012185800';
+        import { ENV_CONFIG } from './env-config.js?v=20251012185800';
         
         // Initialiser Firebase
         const app = initializeApp(firebaseConfig);
@@ -394,9 +386,20 @@
         window.firebaseApp = app;
         window.firebaseDb = db;
         window.firebaseService = firebaseService;
+        window.ENV_CONFIG = ENV_CONFIG;
+        
+        // Mettre à jour la clé ORS dans GAME_CONFIG
+        if (window.GAME_CONFIG) {
+            window.GAME_CONFIG.orsApiKey = ENV_CONFIG.orsApiKey;
+        }
         
         // Initialiser l'application une fois Firebase prêt
         window.addEventListener('DOMContentLoaded', () => {
+            // S'assurer que GAME_CONFIG a la clé ORS
+            if (window.GAME_CONFIG && !window.GAME_CONFIG.orsApiKey) {
+                window.GAME_CONFIG.orsApiKey = ENV_CONFIG.orsApiKey;
+            }
+            
             if (window.initializeApp) {
                 window.initializeApp();
             }

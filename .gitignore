@@ -23,6 +23,9 @@ firebase-config.template.js
 config.example.js
 env.example
 
+# Dossier du site landing page (séparé du projet principal)
+team-building-jeu-piste-main-site/
+
 # ========================================
 # NETLIFY & DÉPLOIEMENT
 # ========================================
